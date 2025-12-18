@@ -6,6 +6,12 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      prerelease:
+        description: 'Als Prerelease veröffentlichen?'
+        required: false
+        type: boolean
+        default: false
 
 # IMPORTANT:
 # 1. Replace 'YOUR_USERNAME/YOUR_MANIFEST_REPO' with the name of your manifest repository.
@@ -13,8 +19,10 @@ on:
 # 3. Create a new "Repository secret" named "MANIFEST_PAT".
 # 4. Paste your Personal Access Token (PAT) into the secret's value. The PAT needs write access to your manifest repository.
 env:
-  MANIFEST_REPO: 'YOUR_USERNAME/YOUR_MANIFEST_REPO' # <-- ⚠️ CHANGE THIS
-  PLUGIN_GUID: ''
+  MANIFEST_REPO: 'YOUR_USERNAME/YOUR_MANIFEST_REPO' # 'YOUR_USERNAME/YOUR_MANIFEST_REPO' # <-- ⚠️ CHANGE THIS
+  PLUGIN_GUID: '00000000-0000-4000-0000-000000000000' # Your plugin's GUID
+  PLUGIN_NAME: 'Example Plugin' # Your plugin's name for commit messages
+
 
 permissions:
   contents: write
@@ -43,13 +51,13 @@ jobs:
         run: |
           import yaml
           import os
-          
+
           build_file = 'build.yaml'
           release_body = os.environ.get('RELEASE_BODY', '')
           # Clean up release_body from markdown to plain text for changelog
           # Simple markdown removal for common elements
           release_body = release_body.replace('**Full Changelog**:', '').strip()
-          
+
           with open(build_file, 'r') as f:
               build_config = yaml.safe_load(f)
 
@@ -130,94 +138,12 @@ jobs:
 
       - name: 'Update Manifest JSON'
         id: update_json
-        shell: python # <-- Added this
-        run: |
-          import json
-          import os
-          import yaml
-          from datetime import datetime
-
-          manifest_path = 'manifest-repo'
-          plugin_path = 'plugin-repo'
-          manifest_file = os.path.join(manifest_path, 'manifest.json')
-          build_file = os.path.join(plugin_path, 'build.yaml')
-
-          plugin_guid = os.environ['PLUGIN_GUID']
-
-          # --- Read build.yaml for plugin metadata ---
-          with open(build_file, 'r') as f:
-              build_config = yaml.safe_load(f)
-
-          # --- Info from release event and previous job ---
-          tag_name = os.environ['GITHUB_REF_NAME']
-          version_str = tag_name.lstrip('v')
-          release_body = os.environ.get('RELEASE_BODY', 'See release notes.')
-          repo_slug = os.environ['GITHUB_REPOSITORY']
-          artifact_name = os.environ['ARTIFACT_NAME']
-
-          # Read checksum from file
-          with open('checksum.txt') as f:
-              checksum = f.read().strip()
-
-          # Construct the source URL
-          source_url = f"https://github.com/{repo_slug}/releases/download/{tag_name}/{artifact_name}"
-
-          # Create the new version entry
-          new_version_entry = {
-              "version": version_str,
-              "changelog": release_body,
-              "timestamp": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-              "sourceUrl": source_url,
-              "checksum": checksum,
-              "targetAbi": build_config.get('targetAbi', 'unknown')
-          }
-
-          # Read the existing manifest or initialize an empty list if it doesn't exist or is invalid
-          manifest_data = []
-          try:
-              with open(manifest_file, 'r') as f:
-                  manifest_data = json.load(f)
-          except (FileNotFoundError, json.JSONDecodeError):
-              print(f"'{manifest_file}' not found, empty, or invalid. Will create a new one.")
-              manifest_data = []
-
-          # Find plugin by GUID and update/create it
-          plugin_found = False
-          for plugin in manifest_data:
-              if plugin.get('guid') == plugin_guid:
-                  # Update top-level metadata from build.yaml if plugin exists
-                  plugin['category'] = build_config.get('category', 'General')
-                  plugin['name'] = build_config.get('name', 'Unknown Plugin')
-                  plugin['description'] = build_config.get('description', '')
-                  plugin['owner'] = build_config.get('owner', 'Unknown Owner')
-                  plugin['overview'] = build_config.get('overview', '')
-
-                  # Prepend the new version to the existing plugin's versions list
-                  plugin['versions'].insert(0, new_version_entry)
-                  plugin_found = True
-                  break
-
-          if not plugin_found:
-              print(f"Plugin with GUID {plugin_guid} not found. Creating new entry.")
-              new_plugin_entry_obj = {
-                  "category": build_config.get('category', 'General'),
-                  "guid": plugin_guid,
-                  "name": build_config.get('name', 'Unknown Plugin'),
-                  "description": build_config.get('description', ''),
-                  "owner": build_config.get('owner', 'Unknown Owner'),
-                  "overview": build_config.get('overview', ''),
-                  "versions": [new_version_entry]
-              }
-              manifest_data.append(new_plugin_entry_obj)
-
-          # Write the updated data back to the manifest file
-          with open(manifest_file, 'w') as f:
-              json.dump(manifest_data, f, indent=4)
-
+        run: python plugin-repo/.github/scripts/update_manifest.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_BODY: ${{ github.event.release.body }}
           ARTIFACT_NAME: ${{ needs.build-and-upload.outputs.artifact_name }}
+          IS_PRERELEASE: ${{ github.event.release.prerelease || inputs.prerelease }}
 
       - name: 'Commit and Push Manifest Changes'
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -226,7 +152,3 @@ jobs:
           commit_user_name: 'github-actions[bot]'
           commit_user_email: 'github-actions[bot]@users.noreply.github.com'
           repository: 'manifest-repo'
-        env:
-          PLUGIN_NAME: 'Test Plugin'
-
-
