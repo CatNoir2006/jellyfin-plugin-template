@@ -1,0 +1,154 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+name: '🚀 3rd-Party Release'
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: 'Als Prerelease veröffentlichen?'
+        required: false
+        type: boolean
+        default: false
+
+# IMPORTANT:
+# 1. Replace 'YOUR_USERNAME/YOUR_MANIFEST_REPO' with the name of your manifest repository.
+# 2. Go to your plugin repository's settings -> Secrets and variables -> Actions.
+# 3. Create a new "Repository secret" named "MANIFEST_PAT".
+# 4. Paste your Personal Access Token (PAT) into the secret's value. The PAT needs write access to your manifest repository.
+env:
+  MANIFEST_REPO: 'YOUR_USERNAME/YOUR_MANIFEST_REPO' # 'YOUR_USERNAME/YOUR_MANIFEST_REPO' # <-- ⚠️ CHANGE THIS
+  PLUGIN_GUID: '00000000-0000-4000-0000-000000000000' # Your plugin's GUID
+  PLUGIN_NAME: 'Example Plugin' # Your plugin's name for commit messages
+
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    name: 'Build & Upload to Release'
+    runs-on: ubuntu-latest
+    outputs:
+      artifact_path: ${{ steps.jprm.outputs.artifact }}
+      artifact_name: ${{ steps.get_filename.outputs.ASSET_FILENAME }}
+
+    steps:
+      - name: 'Checkout Plugin Repo'
+        uses: actions/checkout@v4
+
+      - name: 'Setup .NET'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: 'Update build.yaml for JPRM'
+        if: github.event_name == 'release'
+        id: update_build_yaml
+        shell: python
+        run: |
+          import yaml
+          import os
+
+          build_file = 'build.yaml'
+          release_body = os.environ.get('RELEASE_BODY', '')
+          # Clean up release_body from markdown to plain text for changelog
+          # Simple markdown removal for common elements
+          release_body = release_body.replace('**Full Changelog**:', '').strip()
+
+          with open(build_file, 'r') as f:
+              build_config = yaml.safe_load(f)
+
+          build_config['changelog'] = release_body
+
+          with open(build_file, 'w') as f:
+              yaml.dump(build_config, f, sort_keys=False)
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+
+      - name: 'Build Jellyfin Plugin using JPRM'
+        id: jprm
+        uses: oddstr13/jellyfin-plugin-repository-manager@v1.1.1
+        with:
+          dotnet-target: "net9.0"
+
+
+      - name: 'Get Asset Filename'
+        id: get_filename
+        run: echo "ASSET_FILENAME=$(basename ${{ steps.jprm.outputs.artifact }})" >> $GITHUB_OUTPUT
+
+      - name: 'Calculate Checksum'
+        id: checksum
+        run: |
+          CHECKSUM_VALUE=$(md5sum "${{ steps.jprm.outputs.artifact }}" | cut -d' ' -f1)
+          echo "$CHECKSUM_VALUE" > checksum.txt # Write to file
+          echo "checksum=$CHECKSUM_VALUE" >> $GITHUB_OUTPUT # Still output to GITHUB_OUTPUT for good measure
+
+      - name: 'Upload Artifact to Release'
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ steps.jprm.outputs.artifact }}
+          asset_name: ${{ steps.get_filename.outputs.ASSET_FILENAME }}
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: 'Upload checksum for next job'
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksum-artifact
+          path: checksum.txt # Only upload the checksum file
+          retention-days: 1
+
+  update-manifest:
+    name: 'Update Manifest File'
+    needs: build-and-upload
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout Plugin Repo (for build.yaml)'
+        uses: actions/checkout@v4
+        with:
+          path: plugin-repo
+
+      - name: 'Checkout Manifest Repo'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MANIFEST_REPO }}
+          token: ${{ secrets.MANIFEST_PAT }}
+          path: manifest-repo
+
+      - name: 'Download checksum artifact'
+        uses: actions/download-artifact@v4
+        with:
+          name: checksum-artifact
+
+      - name: 'Setup Python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: 'Install Python Dependencies'
+        run: pip install pyyaml
+
+      - name: 'Update Manifest JSON'
+        id: update_json
+        run: python plugin-repo/.github/scripts/update_manifest.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+          ARTIFACT_NAME: ${{ needs.build-and-upload.outputs.artifact_name }}
+          IS_PRERELEASE: ${{ github.event.release.prerelease || inputs.prerelease }}
+
+      - name: 'Commit and Push Manifest Changes'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'ci: Update manifest for ${{ env.PLUGIN_NAME }} v${{ github.ref_name }}'
+          commit_user_name: 'github-actions[bot]'
+          commit_user_email: 'github-actions[bot]@users.noreply.github.com'
+          repository: 'manifest-repo'
