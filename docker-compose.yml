@@ -1,0 +1,15 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin-dev
+    network_mode: host
+    volumes:
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+      # Pfad relativ zur docker-compose.yml im plugin-template Ordner
+      - ./Jellyfin.Plugin.Template/bin/Debug/net9.0:/config/plugins/TemplatePlugin:rw
+    restart: unless-stopped
+
+volumes:
+  jellyfin-config:
+  jellyfin-cache:

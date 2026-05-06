@@ -8,6 +8,17 @@
     <div id="TemplateConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
         <div data-role="content">
             <div class="content-primary">
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Live TV Setup</h2>
+                    <div class="flex">
+                        <button is="emby-button" type="button" id="btnAddTuner" class="raised button-submit emby-button">
+                            <span>Add Tuner</span>
+                        </button>
+                        <button is="emby-button" type="button" id="btnAddGuide" class="raised button-submit emby-button" style="margin-left: 1em;">
+                            <span>Add Guide</span>
+                        </button>
+                    </div>
+                </div>
                 <form id="TemplateConfigForm">
                     <div class="selectContainer">
                         <label class="selectLabel" for="Options">Several Options</label>
@@ -48,6 +59,44 @@
             document.querySelector('#TemplateConfigPage')
                 .addEventListener('pageshow', function() {
                     Dashboard.showLoadingMsg();
+
+                    document.querySelector('#btnAddTuner').addEventListener('click', function() {
+                        const tunerInfo = {
+                            Type: 'template_livetv',
+                            Url: 'template',
+                            FriendlyName: 'Template Tuner',
+                            TunerCount: 0
+                        };
+                        Dashboard.showLoadingMsg();
+                        ApiClient.ajax({
+                            type: 'POST',
+                            url: ApiClient.getUrl('LiveTv/TunerHosts'),
+                            data: JSON.stringify(tunerInfo),
+                            contentType: 'application/json'
+                        }).then(() => {
+                            Dashboard.hideLoadingMsg();
+                            Dashboard.alert('Tuner successfully added!');
+                        }).catch(() => Dashboard.hideLoadingMsg());
+                    });
+
+                    document.querySelector('#btnAddGuide').addEventListener('click', function() {
+                        const guideInfo = {
+                            Type: 'template_livetv',
+                            Id: 'template_guide',
+                            Name: 'Template Guide'
+                        };
+                        Dashboard.showLoadingMsg();
+                        ApiClient.ajax({
+                            type: 'POST',
+                            url: ApiClient.getUrl('LiveTv/ListingProviders'),
+                            data: JSON.stringify(guideInfo),
+                            contentType: 'application/json'
+                        }).then(() => {
+                            Dashboard.hideLoadingMsg();
+                            Dashboard.alert('Guide successfully added!');
+                        }).catch(() => Dashboard.hideLoadingMsg());
+                    });
+
                     ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
                         document.querySelector('#Options').value = config.Options;
                         document.querySelector('#AnInteger').value = config.AnInteger;
