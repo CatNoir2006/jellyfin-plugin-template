@@ -28,23 +28,7 @@ public class LiveTvService : ITunerHost, IListingsProvider, IConfigurableTunerHo
     /// <inheritdoc />
     public Task<List<ChannelInfo>> GetChannels(bool enableCache, CancellationToken cancellationToken)
     {
-        var channels = new List<ChannelInfo>
-        {
-            new ChannelInfo
-            {
-                Name = "Big Buck Bunny",
-                Id = "bunny",
-                Number = "1",
-                ChannelType = ChannelType.TV
-            },
-            new ChannelInfo
-            {
-                Name = "Jellyfish",
-                Id = "jellyfish",
-                Number = "2",
-                ChannelType = ChannelType.TV
-            }
-        };
+        var channels = new List<ChannelInfo> { new() { Name = "Big Buck Bunny", Id = "bunny", Number = "1", ChannelType = ChannelType.TV }, new() { Name = "Jellyfish", Id = "jellyfish", Number = "2", ChannelType = ChannelType.TV } };
 
         return Task.FromResult(channels);
     }
@@ -81,7 +65,14 @@ public class LiveTvService : ITunerHost, IListingsProvider, IConfigurableTunerHo
     /// <inheritdoc />
     public Task<List<TunerHostInfo>> DiscoverDevices(int discoveryDurationMs, CancellationToken cancellationToken)
     {
-        return Task.FromResult(new List<TunerHostInfo>());
+        List<TunerHostInfo> tuners =
+        [
+            new()
+            {
+                DeviceId = "template_livetv", FriendlyName = "Template Live TV - Device", Source = "Template Live TV", Type = "template_livetv", Id = "template_livetv", Url = "google.de"
+            }
+        ];
+        return Task.FromResult(tuners);
     }
 
     /// <inheritdoc />
