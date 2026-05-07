@@ -1,0 +1,31 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin-dev
+    ports:
+      - "8096:8096"
+    volumes:
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+      - ./Jellyfin.Plugin.Template/bin/Debug/net9.0:/config/plugins/TemplatePlugin:rw
+    restart: unless-stopped
+    networks:
+      - plugin-dev
+
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: jellyfin-ui-proxy
+    ports:
+      - "8097:8097"
+    volumes:
+      - ./Debug/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./Jellyfin.Plugin.Template/Configuration/Web:/app:ro
+    networks:
+      - plugin-dev
+
+networks:
+  plugin-dev:
+
+volumes:
+  jellyfin-config:
+  jellyfin-cache:

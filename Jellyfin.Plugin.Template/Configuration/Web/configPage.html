@@ -5,9 +5,23 @@
     <title>Template</title>
 </head>
 <body>
-    <div id="TemplateConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+    <div id="TemplateConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-controller="__plugin/Template.js" data-require="emby-input,emby-button,emby-select,emby-checkbox">
         <div data-role="content">
             <div class="content-primary">
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Live TV Setup</h2>
+                    <div class="flex">
+                        <button is="emby-button" type="button" id="btnAddTuner" class="raised button-submit emby-button">
+                            <span>Add Tuner</span>
+                        </button>
+                        <button is="emby-button" type="button" id="btnAddGuide" class="raised button-submit emby-button" style="margin-left: 1em;">
+                            <span>Add Guide</span>
+                        </button>
+                        <button is="emby-button" type="button" id="btnPing" class="raised button-submit emby-button" style="margin-left: 1em;">
+                            <span>Ping</span>
+                        </button>
+                    </div>
+                </div>
                 <form id="TemplateConfigForm">
                     <div class="selectContainer">
                         <label class="selectLabel" for="Options">Several Options</label>
@@ -40,40 +54,6 @@
                 </form>
             </div>
         </div>
-        <script type="text/javascript">
-            var TemplateConfig = {
-                pluginUniqueId: 'eb5d7894-8eef-4b36-aa6f-5d124e828ce1'
-            };
-
-            document.querySelector('#TemplateConfigPage')
-                .addEventListener('pageshow', function() {
-                    Dashboard.showLoadingMsg();
-                    ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
-                        document.querySelector('#Options').value = config.Options;
-                        document.querySelector('#AnInteger').value = config.AnInteger;
-                        document.querySelector('#TrueFalseSetting').checked = config.TrueFalseSetting;
-                        document.querySelector('#AString').value = config.AString;
-                        Dashboard.hideLoadingMsg();
-                    });
-                });
-
-            document.querySelector('#TemplateConfigForm')
-                .addEventListener('submit', function(e) {
-                Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
-                    config.Options = document.querySelector('#Options').value;
-                    config.AnInteger = document.querySelector('#AnInteger').value;
-                    config.TrueFalseSetting = document.querySelector('#TrueFalseSetting').checked;
-                    config.AString = document.querySelector('#AString').value;
-                    ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
-                        Dashboard.processPluginConfigurationUpdateResult(result);
-                    });
-                });
-
-                e.preventDefault();
-                return false;
-            });
-        </script>
     </div>
 </body>
 </html>
