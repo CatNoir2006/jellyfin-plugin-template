@@ -48,7 +48,7 @@ document.querySelector('#TemplateConfigPage')
             Dashboard.showLoadingMsg();
             ApiClient.ajax({
                 type: 'GET',
-                url: ApiClient.getUrl('MyPlugin/admin-only'),
+                url: ApiClient.getUrl('MyPlugin/ping'),
                 dataType: 'text'
             }).then((response) => {
                 Dashboard.hideLoadingMsg();
