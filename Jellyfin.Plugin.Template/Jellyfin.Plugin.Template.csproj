@@ -30,6 +30,10 @@
     <EmbeddedResource Include="Configuration\Web\configPage.html" />
     <None Remove="Configuration\Web\configPage.js" />
     <EmbeddedResource Include="Configuration\Web\configPage.js" />
+    <None Remove="Configuration\Web\configPageTest.html" />
+    <EmbeddedResource Include="Configuration\Web\configPageTest.html" />
+    <None Remove="Configuration\Web\TemplateVueJS.js" />
+    <EmbeddedResource Include="Configuration\Web\TemplateVueJS.js" />
   </ItemGroup>
 
 </Project>
