@@ -92,3 +92,21 @@ if (File.Exists(oldCsproj)) File.Move(oldCsproj, Path.Combine(ns, $"{ns}.csproj"
 if (File.Exists($"{oldNamespace}.sln")) File.Move($"{oldNamespace}.sln", $"{ns}.sln");
 
 Console.WriteLine("\nDone! Initialize repository complete.");
+
+Console.Write("\nDisplay git diff of all changes? (y/N): ");
+if (Console.ReadKey().Key == ConsoleKey.Y) {
+    Console.WriteLine("\nStaging and displaying changes...");
+    System.Diagnostics.Process.Start("git", "add -A").WaitForExit();
+    System.Diagnostics.Process.Start("git", "--no-pager diff --cached").WaitForExit();
+
+    Console.WriteLine("\nRestoring staging area...");
+    System.Diagnostics.Process.Start("git", "restore --staged .").WaitForExit();
+}
+
+Console.Write("\nCommit initialization changes? (y/N): ");
+if (Console.ReadKey().Key == ConsoleKey.Y) {
+    Console.WriteLine("\nStaging and committing changes...");
+    System.Diagnostics.Process.Start("git", "add -A").WaitForExit();
+    System.Diagnostics.Process.Start("git", "commit -m \"feat: initialize plugin repository\"").WaitForExit();
+    Console.WriteLine("Changes committed.");
+}
