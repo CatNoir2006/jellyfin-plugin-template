@@ -26,6 +26,13 @@ Console.Write("Description [A Jellyfin plugin.]: ");
 string description = Console.ReadLine() ?? "A Jellyfin plugin.";
 if (string.IsNullOrWhiteSpace(description)) description = "A Jellyfin plugin.";
 
+Console.Write("Long Description [A detailed description of the plugin.]: ");
+string longDescription = Console.ReadLine() ?? "";
+if (string.IsNullOrWhiteSpace(longDescription)) longDescription = description;
+
+Console.Write("Manifest Repository (e.g. username/repo): ");
+string manifestRepo = Console.ReadLine() ?? "YOUR_USERNAME/YOUR_MANIFEST_REPO";
+
 string newGuid = Guid.NewGuid().ToString();
 
 Console.WriteLine($"\nGUID: {newGuid}");
@@ -53,6 +60,13 @@ foreach (var file in files)
         content = Regex.Replace(content, "name: \".*\"", $"name: \"{pluginName}\"");
         content = Regex.Replace(content, "owner: \".*\"", $"owner: \"{owner}\"");
         content = Regex.Replace(content, "overview: \".*\"", $"overview: \"{description}\"");
+        changed = true;
+    }
+
+    if (file.EndsWith("release.yaml")) {
+        content = Regex.Replace(content, "MANIFEST_REPO: '.*'", $"MANIFEST_REPO: '{manifestRepo}'");
+        content = Regex.Replace(content, "PLUGIN_GUID: '.*'", $"PLUGIN_GUID: '{newGuid}'");
+        content = Regex.Replace(content, "PLUGIN_NAME: '.*'", $"PLUGIN_NAME: '{pluginName}'");
         changed = true;
     }
 
