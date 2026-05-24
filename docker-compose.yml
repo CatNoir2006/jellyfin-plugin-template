@@ -23,15 +23,6 @@ services:
     networks:
       - plugin-dev
 
-  vue-builder:
-    image: node:20-slim
-    container_name: jellyfin-vue-builder
-    working_dir: /src
-    volumes:
-      - .:/src:rw
-    command: sh -c "./build-vue-config.sh"
-    profiles: ["build"]
-
 networks:
   plugin-dev:
 
