@@ -7,8 +7,10 @@ services:
     volumes:
       - jellyfin-config:/config
       - jellyfin-cache:/cache
-      - ./Jellyfin.Plugin.Template/bin/Debug/net9.0:/config/plugins/TemplatePlugin:rw
     restart: unless-stopped
+    depends_on:
+      builder:
+        condition: service_completed_successfully
     networks:
       - plugin-dev
 
@@ -22,6 +24,21 @@ services:
       - ./Jellyfin.Plugin.Template/Configuration/Web:/app:ro
     networks:
       - plugin-dev
+
+  builder:
+    build:
+      context: .
+      dockerfile: Debug/Dockerfile.builder
+    container_name: jellyfin-builder
+    volumes:
+      - .:/src:rw
+      - jellyfin-config:/jellyfin-config:rw
+    command: >
+      bash -c "
+        /bin/bash ./Debug/build-jprm.sh &&
+        mkdir -p /jellyfin-config/plugins/TemplatePlugin &&
+        unzip -o ./Debug/artifacts/*.zip -d /jellyfin-config/plugins/TemplatePlugin/
+      "
 
 networks:
   plugin-dev:
