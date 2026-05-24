@@ -58,10 +58,19 @@ VERSION=${VERSION:-$(echo $meta_version | sed 's/\.[0-9]*\.[0-9]*\.[0-9]*$/.'"$V
 # Ensure we use Debug configuration for testing
 CONFIGURATION=${CONFIGURATION:-Debug}
 
+# Backup files that JPRM modifies to keep the workspace clean
+cp Directory.Build.props Directory.Build.props.bak
+cp build.yaml build.yaml.bak
+
 # Ensure dependencies are restored inside the container
 dotnet restore "${PLUGIN}"
 
 # Build the plugin using jprm, passing the configuration
 # We don't need to init a repo or add to it for the Docker test build
 $JPRM plugin build "${PLUGIN}" --output="${ARTIFACT_DIR}" --version="${VERSION}" --dotnet-configuration="${CONFIGURATION}"
+
+# Restore backups
+mv Directory.Build.props.bak Directory.Build.props
+mv build.yaml.bak build.yaml
+
 exit $?
