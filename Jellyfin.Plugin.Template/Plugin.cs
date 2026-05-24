@@ -41,17 +41,31 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
         return
         [
+            // HTML, JS Plugin Page
             new PluginPageInfo
             {
                 Name = Name,
-                EnableInMainMenu = Configuration.TrueFalseSetting,
+                EnableInMainMenu = Configuration.Options != SomeOptions.ShowVueJS,
                 EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.Web.configPage.html", GetType().Namespace)
             },
             new PluginPageInfo
             {
                 Name = "Template.js",
                 EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.Web.configPage.js", GetType().Namespace)
-            }
+            },
+
+            // VUE.JS PluginPage
+            new PluginPageInfo()
+            {
+                Name = Name + "VueJS",
+                EnableInMainMenu = Configuration.Options != SomeOptions.ShowPlainHtml,
+                EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.Web.configPageVueJS.html", GetType().Namespace)
+            },
+            new PluginPageInfo
+            {
+                Name = "configPageVueJS.js",
+                EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.Web.configPageVueJS.js", GetType().Namespace)
+            },
         ];
     }
 }

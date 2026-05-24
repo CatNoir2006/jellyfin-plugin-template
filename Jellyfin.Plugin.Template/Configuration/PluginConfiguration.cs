@@ -8,14 +8,19 @@ namespace Jellyfin.Plugin.Template.Configuration;
 public enum SomeOptions
 {
     /// <summary>
-    /// Option one.
+    /// Shows both Config Pages in the Sidebar.
     /// </summary>
-    OneOption,
+    ShowBoth,
 
     /// <summary>
-    /// Second option.
+    /// Shows Plain HTML Config Page in the Sidebar.
     /// </summary>
-    AnotherOption
+    ShowPlainHtml,
+
+    /// <summary>
+    /// Shows VUE.JS Config Page in the Sidebar.
+    /// </summary>
+    ShowVueJS,
 }
 
 /// <summary>
@@ -29,7 +34,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public PluginConfiguration()
     {
         // set default options here
-        Options = SomeOptions.AnotherOption;
+        Options = SomeOptions.ShowBoth;
         TrueFalseSetting = true;
         AnInteger = 2;
         AString = "string";

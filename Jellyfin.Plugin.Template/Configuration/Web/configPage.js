@@ -3,6 +3,8 @@
  */
 const {Dashboard, ApiClient} = window;
 
+const pluginId = 'eb5d7894-8eef-4b36-aa6f-5d124e828ce1';
+
 document.querySelector('#TemplateConfigPage')
     .addEventListener('pageshow', function() {
         Dashboard.showLoadingMsg();
@@ -56,7 +58,7 @@ document.querySelector('#TemplateConfigPage')
             }).catch(() => Dashboard.hideLoadingMsg());
         });
 
-        ApiClient.getPluginConfiguration('eb5d7894-8eef-4b36-aa6f-5d124e828ce1').then(function (config) {
+        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
             document.querySelector('#Options').value = config.Options;
             document.querySelector('#AnInteger').value = config.AnInteger;
             document.querySelector('#TrueFalseSetting').checked = config.TrueFalseSetting;
@@ -68,12 +70,12 @@ document.querySelector('#TemplateConfigPage')
 document.querySelector('#TemplateConfigForm')
     .addEventListener('submit', function(e) {
     Dashboard.showLoadingMsg();
-    ApiClient.getPluginConfiguration('eb5d7894-8eef-4b36-aa6f-5d124e828ce1').then(function (config) {
+    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
         config.Options = document.querySelector('#Options').value;
         config.AnInteger = document.querySelector('#AnInteger').value;
         config.TrueFalseSetting = document.querySelector('#TrueFalseSetting').checked;
         config.AString = document.querySelector('#AString').value;
-        ApiClient.updatePluginConfiguration('eb5d7894-8eef-4b36-aa6f-5d124e828ce1', config).then(function (result) {
+        ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
             Dashboard.processPluginConfigurationUpdateResult(result);
         });
     });

@@ -30,6 +30,23 @@
     <EmbeddedResource Include="Configuration\Web\configPage.html" />
     <None Remove="Configuration\Web\configPage.js" />
     <EmbeddedResource Include="Configuration\Web\configPage.js" />
+    <None Remove="Configuration\Web\configPageVueJS.html" />
+    <EmbeddedResource Include="Configuration\Web\configPageVueJS.html" />
+    <None Remove="Configuration\Web\configPageVueJS.js" />
+    <EmbeddedResource Include="Configuration\Web\configPageVueJS.js" />
   </ItemGroup>
+
+  <Target Name="BuildVue" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <VueDir>Configuration\Web\VueJS</VueDir>
+    </PropertyGroup>
+    <Message Importance="high" Text="Building VueJS configuration page..." />
+    <!-- Install npm packages if node_modules directory does not exist -->
+    <Exec Command="npm install" WorkingDirectory="$(VueDir)" Condition="!Exists('$(VueDir)\node_modules')" />
+    <!-- Build the VueJS application -->
+    <Exec Command="npm run build" WorkingDirectory="$(VueDir)" />
+    <!-- Copy the bundle to the Web directory where it's expected as an EmbeddedResource -->
+    <Copy SourceFiles="$(VueDir)\dist\configPageVueJS.js" DestinationFiles="Configuration\Web\configPageVueJS.js" />
+  </Target>
 
 </Project>
