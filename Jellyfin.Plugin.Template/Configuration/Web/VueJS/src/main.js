@@ -18,7 +18,7 @@ function unmountApp() {
     }
 }
 
-const pageElementId = 'TemplateVueJSPage';
+const pageElementId = 'configPageVueJSPage';
 const page = document.getElementById(pageElementId);
 const isStandalone = import.meta.env.DEV || !window.Dashboard;
 
@@ -31,7 +31,7 @@ if (page) {
         }
     } else {
         // Inside Jellyfin: remount on every pageshow so config is reloaded
-        page.addEventListener('pageshow', () => {
+        page.addEventListener('pageshow', (event) => {
             const container = page.querySelector('#app');
             if (container) {
                 // Always remount so onMounted fires and config is fetched fresh

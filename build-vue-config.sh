@@ -16,7 +16,7 @@ echo "Starte Build..."
 npm run build
 
 echo "Kopiere Ergebnisse in den Web-Ordner..."
-cp dist/TemplateVueJS.js "../TemplateVueJS.js"
+cp dist/configPageVueJS.js "../configPageVueJS.js"
 
 echo "Build abgeschlossen."
 

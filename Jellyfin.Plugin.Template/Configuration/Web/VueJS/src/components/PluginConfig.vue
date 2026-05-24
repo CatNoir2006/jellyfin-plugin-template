@@ -8,7 +8,7 @@ const ApiClient = window.ApiClient ?? null
 const PLUGIN_ID = 'eb5d7894-8eef-4b36-aa6f-5d124e828ce1'
 
 // ── Reactive config state
-const options      = ref('AnotherOption')
+const options      = ref('ShowBoth')
 const anInteger    = ref(2)
 const trueFalse    = ref(true)
 const aString      = ref('string')
@@ -25,7 +25,7 @@ onMounted(async () => {
   Dashboard?.showLoadingMsg?.()
   try {
     const config = await ApiClient.getPluginConfiguration(PLUGIN_ID)
-    options.value   = config.Options   ?? 'AnotherOption'
+    options.value   = config.Options   ?? 'ShowBoth'
     anInteger.value = config.AnInteger ?? 2
     trueFalse.value = config.TrueFalseSetting ?? true
     aString.value   = config.AString   ?? 'string'
@@ -145,11 +145,12 @@ function ping() {
 
         <!-- Dropdown -->
         <div class="field">
-          <label class="field-label" for="optOptions">Several Options</label>
+          <label class="field-label" for="optOptions">Active WebUI</label>
           <div class="select-wrapper">
             <select id="optOptions" v-model="options" class="field-select">
-              <option value="OneOption">One Option</option>
-              <option value="AnotherOption">Another Option</option>
+              <option value="ShowBoth">Show Both</option>
+              <option value="ShowPlainHtml">Show Plain HTML</option>
+              <option value="ShowVueJS">Show Vue.JS</option>
             </select>
             <span class="select-arrow">▾</span>
           </div>

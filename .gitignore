@@ -4,4 +4,4 @@ obj/
 .idea/
 artifacts
 node_modules/
-TemplateVueJS.js
+configPageVueJS.js

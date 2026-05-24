@@ -45,7 +45,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             new PluginPageInfo
             {
                 Name = Name,
-                EnableInMainMenu = Configuration.TrueFalseSetting,
+                EnableInMainMenu = Configuration.Options != SomeOptions.ShowVueJS,
                 EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.Web.configPage.html", GetType().Namespace)
             },
             new PluginPageInfo
@@ -58,13 +58,13 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             new PluginPageInfo()
             {
                 Name = Name + "VueJS",
-                EnableInMainMenu = Configuration.TrueFalseSetting,
+                EnableInMainMenu = Configuration.Options != SomeOptions.ShowPlainHtml,
                 EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.Web.configPageTest.html", GetType().Namespace)
             },
             new PluginPageInfo
             {
-                Name = "TemplateVueJS.js",
-                EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.Web.TemplateVueJS.js", GetType().Namespace)
+                Name = "configPageVueJS.js",
+                EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.Web.configPageVueJS.js", GetType().Namespace)
             },
         ];
     }

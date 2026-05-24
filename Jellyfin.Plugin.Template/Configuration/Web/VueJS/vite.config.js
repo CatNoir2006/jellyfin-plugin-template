@@ -40,7 +40,7 @@ export default defineConfig(({ command }) => {
         lib: {
           entry: 'src/main.js',
           formats: ['es'],
-          fileName: () => 'TemplateVueJS.js'
+          fileName: () => 'configPageVueJS.js'
         },
         outDir: 'dist',
         emptyOutDir: true
