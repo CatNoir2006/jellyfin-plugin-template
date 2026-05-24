@@ -59,7 +59,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             {
                 Name = Name + "VueJS",
                 EnableInMainMenu = Configuration.Options != SomeOptions.ShowPlainHtml,
-                EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.Web.configPageTest.html", GetType().Namespace)
+                EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.Web.configPageVueJS.html", GetType().Namespace)
             },
             new PluginPageInfo
             {
