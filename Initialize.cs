@@ -40,8 +40,8 @@ Console.Write("Proceed? (y/N): ");
 if (Console.ReadKey().Key != ConsoleKey.Y) { Console.WriteLine("\nAborted."); return; }
 
 // Constants
-const string oldNamespace = "Jellyfin.Plugin.MyCatPlugin";
-const string oldGuid = "dfc0cff8-b1e1-46ba-9f22-43becb021049";
+const string oldNamespace = "Jellyfin.Plugin.Template";
+const string oldGuid = "eb5d7894-8eef-4b36-aa6f-5d124e828ce1";
 
 // Process Files
 var files = Directory.EnumerateFiles(".", "*", SearchOption.AllDirectories)
@@ -49,6 +49,11 @@ var files = Directory.EnumerateFiles(".", "*", SearchOption.AllDirectories)
 
 foreach (var file in files)
 {
+    string relativePath = Path.GetRelativePath(Environment.CurrentDirectory, file);
+    
+    // Skip this script itself
+    if (relativePath == "Initialize.cs") continue;
+
     string content = File.ReadAllText(file);
     bool changed = false;
 
@@ -56,21 +61,21 @@ foreach (var file in files)
     if (content.Contains(oldGuid)) { content = content.Replace(oldGuid, newGuid); changed = true; }
     
     // Specific updates
-    if (file.EndsWith("build.yaml")) {
+    if (relativePath == "build.yaml") {
         content = Regex.Replace(content, "name: \".*\"", $"name: \"{pluginName}\"");
         content = Regex.Replace(content, "owner: \".*\"", $"owner: \"{owner}\"");
         content = Regex.Replace(content, "overview: \".*\"", $"overview: \"{description}\"");
         changed = true;
     }
 
-    if (file.EndsWith("release.yaml")) {
+    if (relativePath == ".github/workflows/release.yaml") {
         content = Regex.Replace(content, "MANIFEST_REPO: '.*'", $"MANIFEST_REPO: '{manifestRepo}'");
         content = Regex.Replace(content, "PLUGIN_GUID: '.*'", $"PLUGIN_GUID: '{newGuid}'");
         content = Regex.Replace(content, "PLUGIN_NAME: '.*'", $"PLUGIN_NAME: '{pluginName}'");
         changed = true;
     }
 
-    if (file.EndsWith("docker-compose.yml")) {
+    if (relativePath == "docker-compose.yml") {
         // Convert PascalCase/TitleCase to kebab-case
         string kebabName = Regex.Replace(pluginName, @"([a-z0-9])([A-Z])", "$1-$2").ToLower();
         content = Regex.Replace(content, "jellyfin-plugin-template", kebabName);
@@ -84,6 +89,6 @@ foreach (var file in files)
 if (Directory.Exists(oldNamespace)) Directory.Move(oldNamespace, ns);
 string oldCsproj = Path.Combine(ns, $"{oldNamespace}.csproj");
 if (File.Exists(oldCsproj)) File.Move(oldCsproj, Path.Combine(ns, $"{ns}.csproj"));
-if (File.Exists("Jellyfin.Plugin.MyCatPlugin.sln")) File.Move("Jellyfin.Plugin.MyCatPlugin.sln", $"{ns}.sln");
+if (File.Exists($"{oldNamespace}.sln")) File.Move($"{oldNamespace}.sln", $"{ns}.sln");
 
 Console.WriteLine("\nDone! Initialize repository complete.");
